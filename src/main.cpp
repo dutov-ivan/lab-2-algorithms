@@ -24,15 +24,15 @@ void local_and_backtrack_workflow(std::mt19937& gen) {
         std::uint64_t board_without_conflicts = remove_conflicts(localSearchResult);
         depict_state(board_without_conflicts);
 
-        std::uint64_t backtrack_result = backtrack(board_without_conflicts);
-        encountered_sad_ending = backtrack_result != 0;
+        BacktrackResult backtrack_result = backtrack(board_without_conflicts);
+        encountered_sad_ending = !backtrack_result.found;
         if (encountered_sad_ending) {
-            std::cout << "Encountered a sad ending..." << std::endl;
+            std::cout << "Encountered a sad ending...\n" << std::endl;
         } else {
-            std::cout << "Encountered a happy ending..." << std::endl;
+            std::cout << "Encountered a happy ending...\n" << std::endl;
         }
 
-        depict_state(backtrack_result);
+        depict_state(backtrack_result.board);
     } while(encountered_sad_ending);
 }
 
@@ -40,8 +40,8 @@ void backtrack_workflow() {
     std::uint64_t initial = 0;
     depict_state(initial);
 
-    std::uint64_t result = backtrack(initial);
-    depict_state(result);
+    BacktrackResult result = backtrack(initial);
+    depict_state(result.board);
 }
 
 int main(int argc, char const *argv[])

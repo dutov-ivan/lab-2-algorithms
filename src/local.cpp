@@ -3,11 +3,11 @@
 #include "local.h"
 #include <stack>
 
-struct BacktrackState {
+struct SearchNode {
     std::uint64_t board;
     std::uint8_t emptyCols;
 
-    BacktrackState(std::uint64_t board);
+    SearchNode(std::uint64_t board);
 };
 
 int T(int t)
@@ -71,38 +71,76 @@ uint64_t remove_conflicts(uint64_t board) {
     return board;
 }
 
+bool is_there_empty_place(std::uint64_t bitboard) {
+    std::uint64_t attackedSquares = 0;
+    while (bitboard) {
+        int pos = __builtin_ctzll(bitboard);
+        uint64_t attacks = QUEEN_ATTACKS[pos] & bitboard;
+        attacks &= ~(1ULL << pos);
+        attackedSquares |= attacks;
+        bitboard &= bitboard - 1; 
+    }
+    return attackedSquares != ~0ULL;
+}
 
-// We use empty columns for backtracking because this way we would have clarly defined invalid state (when the queens hit each other)
-uint64_t backtrack(std::uint64_t start)
+
+
+
+BacktrackResult backtrack(std::uint64_t start)
 {
-    BacktrackState initial(start);
-    std::stack<BacktrackState> st;
+
+    if (!is_there_empty_place(start)) {
+        return BacktrackResult(start, false); // No empty places, return the current board
+    }
+
+    SearchNode initial(start);
+    std::stack<SearchNode> st;
     st.push(initial);
 
     while(!st.empty()){
-        BacktrackState next = st.top();
+        SearchNode current = st.top();
         st.pop();
-        std::uint8_t emptyCols = next.emptyCols;
+        
+        std::uint8_t emptyCols = current.emptyCols;
+
+        // Check for solution: All columns are filled
         if (emptyCols == 0) {
-            return next.board;
+            // We also need to ensure it's 8 queens, in case the 'start' board was partial
+            if (__builtin_popcountll(current.board) == 8) {
+                return BacktrackResult(current.board, true); // Found a solution
+            }
         }
 
-        while(emptyCols != 0) {
-            int col = __builtin_ctzll(emptyCols);
-            for (int r = 0; r < 8; r++){
-                const int pos = r * 8 + col;
-                std::uint64_t overlap = QUEEN_ATTACKS[pos] & (next.board);
-                if (overlap != 0) {
-                    continue;
-                }
-                std::uint64_t newBoard = next.board + (1ULL << pos);
-                BacktrackState newState = BacktrackState(newBoard);
-                st.push(newState);
+        int col = __builtin_ctzll(emptyCols);
+
+        bool newStateCreated = false;
+        // Now, iterate through all rows *for that single column*
+        for (int r = 0; r < 8; r++){
+            const int pos = r * 8 + col;
+            std::uint64_t overlap = QUEEN_ATTACKS[pos] & (current.board);
+            
+            // If placing a queen here conflicts, skip this row
+            if (overlap != 0) {
+                continue;
             }
-            emptyCols &= emptyCols - 1;
+
+            // This position (r, col) is valid. Create the new child state.
+            // Using | (bitwise OR) is more idiomatic than + for setting a bit.
+            std::uint64_t newBoard = current.board | (1ULL << pos); 
+            
+            SearchNode newState = SearchNode(newBoard);
+            st.push(newState); // Push the new state to be explored
+            newStateCreated = true;
         }
+
+        if (!newStateCreated) {
+            // No valid positions found in this column, so this path is a dead end.
+            continue;
+        }
+        
+        // The 'while(emptyCols != 0)' loop is gone.
     }
-    return 0;
+    return BacktrackResult(0, false); // No solution found
 }
 
 std::vector<uint64_t> get_next_local_states(std::uint64_t bitboard, int queenCol)
@@ -128,7 +166,7 @@ std::vector<uint64_t> get_next_local_states(std::uint64_t bitboard, int queenCol
     return newBitboards;
 }
 
-BacktrackState::BacktrackState(uint64_t board)
+SearchNode::SearchNode(uint64_t board)
 {
     uint8_t emptyCols = 0xFF; // all 8 bits = 1, assume all columns empty
     uint64_t copyBoard = board;
@@ -140,4 +178,5 @@ BacktrackState::BacktrackState(uint64_t board)
     }
 
     this->emptyCols = emptyCols; // assuming you store it in the struct/class
+    this->board = board;
 }
