@@ -1,9 +1,9 @@
 #ifndef GENERATE_H
 #define GENERATE_H
 
-#include <cstdint>
 #include <random>
+#include "common.h"
 
-std::uint64_t generate_initial_bitboard(std::mt19937& gen);
+Board generate_initial_bitboard(std::mt19937 &gen);
 
 #endif // GENERATE_H

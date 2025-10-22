@@ -2,6 +2,8 @@
 #define HEURISTIC_H
 #include <cstdint>
 
-int count_attacking_pairs(std::uint64_t state);
+#include "common.h"
+
+double count_attacking_pairs(const Board &state);
 
 #endif

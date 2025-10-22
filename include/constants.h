@@ -7,8 +7,8 @@ constexpr std::array<std::uint64_t, 64> generate_queen_attacks() {
     std::array<std::uint64_t, 64> attacks{};
 
     for (int sq = 0; sq < 64; ++sq) {
-        int r = sq / 8;
-        int f = sq % 8;
+        const int r = sq / 8;
+        const int f = sq % 8;
         std::uint64_t mask = 0;
 
         // 1. Horizontal (Rank) and Vertical (File) attacks
