@@ -3,6 +3,7 @@
 #include <stack>
 #include <iostream>
 
+#include "generate.h"
 #include "print.h"
 
 SearchNode::SearchNode(const Board board) {
@@ -10,11 +11,17 @@ SearchNode::SearchNode(const Board board) {
 
     for (const auto &q: board) {
         const std::uint8_t col = q % 8;
-        empty_cols |= 1u << col;
+        empty_cols &= ~(1u << col);
     }
 
     this->emptyCols = empty_cols;
     this->board = board;
+}
+
+SearchNode::SearchNode(const SearchNode &prev, std::uint8_t col, std::uint8_t row) {
+    board = prev.board;
+    board.set_queen(queen_position(col, row));
+    emptyCols = prev.emptyCols & ~(1u << col);
 }
 
 
@@ -128,10 +135,7 @@ SearchResult BacktrackSearch::search(Board start) {
                 continue;
             }
 
-            Board newBoard = current.board;
-            newBoard.set_queen(pos);
-
-            nextStates.emplace_back(newBoard);
+            nextStates.emplace_back(current, col, r);
             stats.nodesGenerated++;
         }
 
@@ -152,7 +156,7 @@ SearchResult BacktrackSearch::search(Board start) {
     return SearchResult(stats, Board(0), false); // No solution found
 }
 
-AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen, HeuristicFunction h) : h_(h) {
+AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen, HeuristicFunction h) : h_(h), gen_(gen) {
     annealing_ = std::make_unique<AnnealingSearch>(gen, h);
     backtracking_ = std::make_unique<BacktrackSearch>(h);
 }
@@ -176,6 +180,7 @@ SearchResult AnnealingThenBacktrack::search(Board start) {
 
         if (!solved) {
             std::cout << "Encountered a sad ending...\n" << std::endl;
+            start = generate_initial_bitboard(gen_);
         } else {
             globalSearchResult.solution = solution;
             globalSearchResult.solved = true;
@@ -183,6 +188,7 @@ SearchResult AnnealingThenBacktrack::search(Board start) {
     } while (!globalSearchResult.solved);
 
     std::cout << "Encountered a happy ending...\n" << std::endl;
+    return globalSearchResult;
 }
 
 Board AnnealingThenBacktrack::remove_conflicts(Board board) {

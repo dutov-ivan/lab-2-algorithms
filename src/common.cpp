@@ -36,7 +36,7 @@ bool Board::is_empty() const {
 }
 
 std::uint8_t queen_position(const std::uint8_t col, const std::uint8_t row) {
-    return col * 8 + row;
+    return row * 8 + col;
 }
 
 

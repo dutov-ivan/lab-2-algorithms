@@ -9,11 +9,11 @@ int main(int argc, char const *argv[]) {
     std::random_device rd;
     std::mt19937 gen(rd());
 
-    // const Board initialBoard = generate_initial_bitboard(gen);
-    // depict_state(initialBoard, count_attacking_pairs);
+    const Board initialBoard = generate_initial_bitboard(gen);
+    depict_state(initialBoard, count_attacking_pairs);
 
-    BacktrackSearch searcher(count_attacking_pairs);
-    SearchResult result = searcher.search(Board());
+    AnnealingThenBacktrack searcher(gen, count_attacking_pairs);
+    SearchResult result = searcher.search(initialBoard);
     depict_state(result.solution, count_attacking_pairs);
 
     return 0;
