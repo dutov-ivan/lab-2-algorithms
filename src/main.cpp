@@ -71,14 +71,22 @@ int main(int argc, char const *argv[]) {
 
     std::vector<HeuristicFunction> heuristics = {
         count_attacking_pairs,
+        line_occupancy_heuristic
     };
 
-    for (const auto &heuristic: heuristics) {
+    std::vector<std::string> heuristic_names = {
+        "Count Attacking Pairs",
+        "Line Occupancy Heuristic"
+    };
+
+    for (size_t i = 0; i < heuristics.size(); i++) {
+        const HeuristicFunction heuristic = heuristics[i];
+        const std::string heuristic_name = heuristic_names[i];
         for (const auto &searcher: searchers) {
             std::vector<SearchReport> results = perform_experiments(searcher, gen, heuristic, searcher->name(), 20);
             print_reports(results);
             print_report_average(results);
-            const std::string filename = searcher->name() + "_experiments.csv";
+            const std::string filename = searcher->name() + "_" + heuristic_name + "_experiments.csv";
             if (!save_reports_csv(results, filename)) {
                 std::cerr << "CSV export failed\n";
             } else {

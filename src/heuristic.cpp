@@ -1,10 +1,7 @@
 #include "../include/heuristic.h"
 #include <cstdint>
-#include <array>
-#include <iostream>
-
 #include "common.h"
-#include "../include/constants.h"
+#include "../include/masks.h"
 
 double count_attacking_pairs(const Board &board) {
     int total_attacks = 0;
@@ -17,4 +14,21 @@ double count_attacking_pairs(const Board &board) {
     }
 
     return total_attacks;
+}
+
+double line_occupancy_heuristic(const Board &b) {
+    uint64_t bb = b.get();
+    int h = 0;
+
+    auto add_conflicts = [&](uint64_t mask) {
+        int occ = std::popcount(bb & mask);
+        if (occ > 1) h += (occ - 1);
+    };
+
+    for (auto m: ROW_MASKS) add_conflicts(m);
+    for (auto m: COL_MASKS) add_conflicts(m);
+    for (auto m: MAIN_DIAG_MASKS) add_conflicts(m);
+    for (auto m: ANTI_DIAG_MASKS) add_conflicts(m);
+
+    return h;
 }

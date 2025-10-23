@@ -4,7 +4,7 @@
 
 
 AStarSearch::AStarSearch() {
-    name_ = "A* Search";
+    name_ = "AStar Search";
 }
 
 SearchResult AStarSearch::search(Board start, HeuristicFunction h) {

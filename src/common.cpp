@@ -3,9 +3,9 @@
 //
 #include "../include/common.h"
 
-#include "constants.h"
+#include "masks.h"
 
-std::uint64_t Board::get() {
+std::uint64_t Board::get() const {
     return bitboard;
 }
 
