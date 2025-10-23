@@ -3,14 +3,15 @@
 #include <queue>
 
 
-AStarSearch::AStarSearch(HeuristicFunction h) : heuristic(h) {
+AStarSearch::AStarSearch() {
+    name_ = "A* Search";
 }
 
-SearchResult AStarSearch::search(Board start) {
+SearchResult AStarSearch::search(Board start, HeuristicFunction h) {
     SearchStats stats;
     auto initialState = AstarNode{0, start};
-    auto cmp = [this](const AstarNode &a, const AstarNode &b) {
-        return (a.g + heuristic(a.bitboard)) > (b.g + heuristic(b.bitboard));
+    auto cmp = [h](const AstarNode &a, const AstarNode &b) {
+        return (a.g + h(a.bitboard)) > (b.g + h(b.bitboard));
     };
     std::priority_queue<AstarNode, std::vector<AstarNode>, decltype(cmp)> pq(cmp);
 
@@ -22,7 +23,7 @@ SearchResult AStarSearch::search(Board start) {
         AstarNode current = pq.top();
         pq.pop();
 
-        if (heuristic(current.bitboard) == 0) {
+        if (h(current.bitboard) == 0) {
             return SearchResult{stats, current.bitboard, true};
         }
 

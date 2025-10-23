@@ -13,12 +13,12 @@ struct AstarNode {
 
 class AStarSearch final : public Search {
 public:
-    explicit AStarSearch(HeuristicFunction h);
+    explicit AStarSearch();
 
-    SearchResult search(Board start) override;
+    SearchResult search(Board start, HeuristicFunction h) override;
+
 private:
-    static std::vector<AstarNode> get_next_states(const AstarNode& initial, std::uint8_t queenCol);
-    HeuristicFunction heuristic;
+    static std::vector<AstarNode> get_next_states(const AstarNode &initial, std::uint8_t queenCol);
 };
 
 #endif // ASTAR_H

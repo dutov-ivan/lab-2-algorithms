@@ -9,19 +9,19 @@
 
 class AnnealingSearch final : public Search {
 public:
-    explicit AnnealingSearch(std::mt19937 &gen, HeuristicFunction h);
+    explicit AnnealingSearch(std::mt19937 &gen);
+
+
+    SearchResult search(Board start, HeuristicFunction h) override;
+
+private:
+    static double T(int t);
 
     static bool is_valid_board(const Board &start);
 
-    SearchResult search(Board start) override;
-
-    static double T(int t);
-
-private:
     Board next_state(const Board &current, SearchStats &stats);
 
     std::mt19937 &gen_;
-    HeuristicFunction h_;
     std::uniform_int_distribution<std::uint8_t> col_distribution_;
     std::uniform_int_distribution<std::uint8_t> col_distribution_except_one_;
 };
@@ -37,24 +37,20 @@ struct SearchNode {
 
 class BacktrackSearch final : public Search {
 public:
-    explicit BacktrackSearch(HeuristicFunction h);
+    explicit BacktrackSearch();
 
-    SearchResult search(Board start) override;
-
-private:
-    HeuristicFunction h_;
+    SearchResult search(Board start, HeuristicFunction h) override;
 };
 
 class AnnealingThenBacktrack final : public Search {
 public:
-    explicit AnnealingThenBacktrack(std::mt19937 &gen, HeuristicFunction h);
+    explicit AnnealingThenBacktrack(std::mt19937 &gen);
 
-    SearchResult search(Board start) override;
+    SearchResult search(Board start, HeuristicFunction h) override;
 
 private:
     static Board remove_conflicts(Board board);
 
-    HeuristicFunction h_;
     std::mt19937 &gen_;
     std::unique_ptr<AnnealingSearch> annealing_;
     std::unique_ptr<BacktrackSearch> backtracking_;
