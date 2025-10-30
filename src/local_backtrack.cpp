@@ -12,7 +12,7 @@ AnnealingSearch::AnnealingSearch(std::mt19937 &gen) : Search("simulated annealin
 }
 
 SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
-    if (is_valid_board(start))
+    if (!is_valid_board(start))
         return SearchResult{SearchStats{}, start, false};
 
     int t = 1;
@@ -50,16 +50,26 @@ double AnnealingSearch::T(const int t) {
 }
 
 bool AnnealingSearch::is_valid_board(const Board &start) {
-    // Only accept boards with one queen per column
-    std::uint8_t emptyCols = 0;
-    for (const auto &sq: start) {
-        emptyCols |= (1u << (sq % 8));
+    std::uint8_t columnMask = 0;
+    int queenCount = 0;
+
+    for (const auto &sq : start) {
+        int col = sq % 8;
+        uint8_t bit = (1u << col);
+
+        // Duplicate column found
+        if (columnMask & bit) {
+            return false;
+        }
+
+        columnMask |= bit;
+        queenCount++;
     }
-    if (~emptyCols != 0) {
-        return true; // Invalid start board
-    }
-    return false;
+
+    // All 8 columns used exactly once, and exactly 8 queens placed
+    return columnMask == 0xFF && queenCount == 8;
 }
+
 
 Board AnnealingSearch::next_state(const Board &current, SearchStats &stats) {
     const std::uint8_t queenCol = col_distribution_(gen_);
@@ -96,17 +106,10 @@ BacktrackNode::BacktrackNode(const Board board) {
     this->board = board;
 }
 
-BacktrackNode::BacktrackNode(const BacktrackNode &prev, std::uint8_t col, std::uint8_t row) {
-    board = prev.board;
-    board.set_queen(queen_position(col, row));
-    emptyCols = prev.emptyCols & ~(1u << col);
-}
-
 SearchResult BacktrackSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
-    BacktrackNode initial(start);
     SearchStats stats;
     std::stack<BacktrackNode> st;
-    st.push(initial);
+    st.emplace(start);
 
     while (!st.empty()) {
         BacktrackNode current = st.top();
@@ -116,31 +119,31 @@ SearchResult BacktrackSearch::search(const Board start, const std::unique_ptr<He
             return SearchResult(stats, current.board, true);
         }
 
-        const std::uint8_t col = __builtin_ctzll(current.emptyCols);
+        const uint8_t col = __builtin_ctzll(current.emptyCols);
+        bool expanded = false;
 
-
-        // Now, iterate through all rows *for that single column*
-        for (int r = 0; r < 8; r++) {
+        for (int r = 0; r < 8; ++r) {
             const int pos = r * 8 + col;
 
+            if (current.board.queens_attacked_from(pos).get() != 0) continue;
 
-            if (!current.board.queens_attacked_from(pos).is_empty()) {
-                continue;
-            }
+            Board newBoard = current.board;
+            newBoard.set_queen(pos);
 
-            st.emplace(current, col, r);
+            uint64_t newEmpty = current.emptyCols & ~(1ULL << col);
+            st.emplace(newBoard, newEmpty);
             stats.nodesGenerated++;
+            expanded = true;
         }
 
-        if (st.size() > stats.nodesInMemory) {
-            stats.nodesInMemory = st.size();
-        }
-
+        if (!expanded) stats.deadEnds++;
+        stats.nodesInMemory = std::max(stats.nodesInMemory, st.size());
         stats.iterations++;
     }
-    stats.deadEnds++;
-    return SearchResult(stats, Board(0), false); // No solution found
+
+    return SearchResult(stats, Board(0), false);
 }
+
 
 AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen) : Search(
                                                                         "Annealing then Backtracking Search with retries"),
@@ -181,7 +184,8 @@ SearchResult AnnealingThenBacktrack::search(Board start, const std::unique_ptr<H
 }
 
 Board AnnealingThenBacktrack::remove_conflicts(Board board) {
-    while (true) {
+    bool hasConflicts = true;
+    while (hasConflicts) {
         int maxConflictsPos = -1;
         int maxConflicts = 0;
 
@@ -196,9 +200,8 @@ Board AnnealingThenBacktrack::remove_conflicts(Board board) {
         }
 
         if (maxConflicts == 0)
-            break;
-
-        board.clear_queen(maxConflictsPos);
+            hasConflicts = false;
+        else board.clear_queen(maxConflictsPos);
     }
 
     return board;

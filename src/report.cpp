@@ -5,7 +5,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
-#include "../include/csv_export.h"
+#include "../include/report.h"
+
+struct AverageStats;
 
 static std::string board_to_multiline_string(const Board &board) {
     std::ostringstream oss;
@@ -56,7 +58,7 @@ bool save_reports_csv(const std::vector<SearchReport> &results, const std::strin
         return false;
     }
 
-    out << "Starting Position,Iterations,Nodes generated,Nodes in memory,Dead ends\n";
+    out << "Стартова позиція,Ітерації,Згенеровано вузлів,Вузлів у пам'яті,Глухі кути\n";
 
     for (const auto &r: results) {
         const std::string start_field = board_to_multiline_string(r.startingPosition);
@@ -65,6 +67,28 @@ bool save_reports_csv(const std::vector<SearchReport> &results, const std::strin
                 << r.stats.nodesGenerated << ','
                 << r.stats.nodesInMemory << ','
                 << r.stats.deadEnds << '\n';
+    }
+
+    out.close();
+    return true;
+}
+
+bool save_average_stats_csv(const std::vector<std::pair<std::string, AverageStats>> &average_stats,
+                             const std::string &filename) {
+    std::ofstream out(filename, std::ios::binary);
+    if (!out.is_open()) {
+        std::cerr << "Failed to open CSV file for writing: " << filename << std::endl;
+        return false;
+    }
+
+    out << "Алгоритм,Середні ітерації,Середньо згенеровано вузлів,Середньо вузлів у пам'яті,Середньо глухих кутів\n";
+
+    for (const auto &[algorithm_name, stats]: average_stats) {
+        out << escape_csv_field(algorithm_name) << ','
+                << stats.avg_iterations << ','
+                << stats.avg_nodesGenerated << ','
+                << stats.avg_nodesInMemory << ','
+                << stats.avg_deadEnds << '\n';
     }
 
     out.close();

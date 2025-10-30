@@ -32,7 +32,7 @@ struct BacktrackNode {
 
     explicit BacktrackNode(Board board);
 
-    explicit BacktrackNode(const BacktrackNode &prev, std::uint8_t col, std::uint8_t row);
+    explicit BacktrackNode(Board board, std::uint8_t emptyCols) : board(board), emptyCols(emptyCols) {}
 };
 
 class BacktrackSearch final : public Search {

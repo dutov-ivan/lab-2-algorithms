@@ -30,12 +30,6 @@ struct SearchResult {
     bool solved = false;
 };
 
-struct SearchReport {
-    Board startingPosition;
-    Board solutionPosition;
-    SearchStats stats;
-};
-
 
 class Search {
 public:
