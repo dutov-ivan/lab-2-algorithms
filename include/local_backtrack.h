@@ -4,6 +4,7 @@
 #include <memory>
 #include <vector>
 #include <random>
+#include "heuristic.h"
 
 #include "search.h"
 
@@ -11,8 +12,7 @@ class AnnealingSearch final : public Search {
 public:
     explicit AnnealingSearch(std::mt19937 &gen);
 
-
-    SearchResult search(Board start, HeuristicFunction h) override;
+    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
 
 private:
     static double T(int t);
@@ -37,16 +37,17 @@ struct SearchNode {
 
 class BacktrackSearch final : public Search {
 public:
-    explicit BacktrackSearch();
+    explicit BacktrackSearch() : Search("Backtracking Search") {
+    }
 
-    SearchResult search(Board start, HeuristicFunction h) override;
+    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
 };
 
 class AnnealingThenBacktrack final : public Search {
 public:
     explicit AnnealingThenBacktrack(std::mt19937 &gen);
 
-    SearchResult search(Board start, HeuristicFunction h) override;
+    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
 
 private:
     static Board remove_conflicts(Board board);

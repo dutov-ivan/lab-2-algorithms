@@ -8,7 +8,7 @@
 #include "../include/local_backtrack.h"
 
 std::vector<SearchReport> perform_experiments(const std::unique_ptr<Search> &searcher, std::mt19937 &gen,
-                                              const HeuristicFunction h,
+                                              const std::unique_ptr<Heuristic> &h,
                                               const std::string &search_name, const std::size_t experiment_count) {
     std::vector<SearchReport> results;
     results.reserve(experiment_count);
@@ -62,36 +62,32 @@ void print_report_average(std::vector<SearchReport> &results) {
     std::cout << "========================================" << std::endl;
 }
 
-int main(int argc, char const *argv[]) {
+int main() {
     std::random_device rd;
     std::mt19937 gen(rd());
     std::vector<std::unique_ptr<Search> > searchers;
     searchers.push_back(std::make_unique<AStarSearch>());
     searchers.push_back(std::make_unique<AnnealingThenBacktrack>(gen));
 
-    std::vector<HeuristicFunction> heuristics = {
-        count_attacking_pairs,
-        line_occupancy_heuristic
-    };
+    std::vector<std::unique_ptr<Heuristic> > heuristics;
+    heuristics.push_back(std::make_unique<CountAttackingPairs>());
+    heuristics.push_back(std::make_unique<LineOccupancyHeuristic>());
 
-    std::vector<std::string> heuristic_names = {
-        "Count Attacking Pairs",
-        "Line Occupancy Heuristic"
-    };
-
-    for (size_t i = 0; i < heuristics.size(); i++) {
-        const HeuristicFunction heuristic = heuristics[i];
-        const std::string heuristic_name = heuristic_names[i];
+    for (const auto &heuristic: heuristics) {
         for (const auto &searcher: searchers) {
             std::vector<SearchReport> results = perform_experiments(searcher, gen, heuristic, searcher->name(), 20);
+            std::cout << "REPORT FOR ALGORITHM: " << searcher->name()
+                    << " WITH HEURISTIC: " << heuristic->name() << std::endl;
             print_reports(results);
             print_report_average(results);
-            const std::string filename = searcher->name() + "_" + heuristic_name + "_experiments.csv";
+            const std::string filename = searcher->name() + "_" + heuristic->name() + "_experiments.csv";
             if (!save_reports_csv(results, filename)) {
                 std::cerr << "CSV export failed\n";
             } else {
                 std::cout << "Wrote " << filename << std::endl;
             }
+            std::cout << "Press Enter to continue..." << std::endl;
+            std::cin.get();
         }
     }
 

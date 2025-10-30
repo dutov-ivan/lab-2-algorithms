@@ -6,6 +6,8 @@
 #include <cstdint>
 #include <vector>
 
+#include "heuristic.h"
+
 struct AstarNode {
     unsigned int g; // Cost from start to current node
     Board bitboard; // Unique representation of board with queens
@@ -13,9 +15,10 @@ struct AstarNode {
 
 class AStarSearch final : public Search {
 public:
-    explicit AStarSearch();
+    explicit AStarSearch() : Search("AStar Search") {
+    }
 
-    SearchResult search(Board start, HeuristicFunction h) override;
+    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
 
 private:
     static std::vector<AstarNode> get_next_states(const AstarNode &initial, std::uint8_t queenCol);

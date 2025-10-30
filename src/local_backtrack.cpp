@@ -25,10 +25,9 @@ SearchNode::SearchNode(const SearchNode &prev, std::uint8_t col, std::uint8_t ro
 }
 
 
-AnnealingSearch::AnnealingSearch(std::mt19937 &gen) : gen_(gen),
+AnnealingSearch::AnnealingSearch(std::mt19937 &gen) : Search("simulated annealing search"), gen_(gen),
                                                       col_distribution_(0, 7),
                                                       col_distribution_except_one_(0, 7 - 1) {
-    name_ = "Simulated Annealing Search";
 }
 
 bool AnnealingSearch::is_valid_board(const Board &start) {
@@ -43,7 +42,7 @@ bool AnnealingSearch::is_valid_board(const Board &start) {
     return false;
 }
 
-SearchResult AnnealingSearch::search(const Board start, HeuristicFunction h) {
+SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
     if (is_valid_board(start))
         return SearchResult{SearchStats{}, start, false};
 
@@ -53,14 +52,14 @@ SearchResult AnnealingSearch::search(const Board start, HeuristicFunction h) {
     stats.nodesInMemory = 2;
 
     while (T(t) != 0) {
-        if (h(current) == 0) {
+        if (h->calculate(current) == 0) {
             return SearchResult{stats, current, current.count_queens() == 8}; // Found a solution
         }
 
 
         const Board randomState = next_state(current, stats);
 
-        const double deltaE = h(randomState) - h(current);
+        const double deltaE = h->calculate(randomState) - h->calculate(current);
         if (deltaE > 0) {
             current = randomState;
         } else {
@@ -103,11 +102,7 @@ Board AnnealingSearch::next_state(const Board &current, SearchStats &stats) {
     return randomState;
 }
 
-BacktrackSearch::BacktrackSearch() {
-    name_ = "Backtracking Search";
-}
-
-SearchResult BacktrackSearch::search(Board start, HeuristicFunction h) {
+SearchResult BacktrackSearch::search(Board start, const std::unique_ptr<Heuristic> &h) {
     SearchNode initial(start);
     SearchStats stats;
     std::stack<SearchNode> st;
@@ -150,13 +145,15 @@ SearchResult BacktrackSearch::search(Board start, HeuristicFunction h) {
     return SearchResult(stats, Board(0), false); // No solution found
 }
 
-AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen) : gen_(gen) {
-    name_ = "Annealing then Backtracking Search with retries";
+AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen) : Search(
+                                                                        "Annealing then Backtracking Search with retries"),
+
+                                                                    gen_(gen) {
     annealing_ = std::make_unique<AnnealingSearch>(gen);
     backtracking_ = std::make_unique<BacktrackSearch>();
 }
 
-SearchResult AnnealingThenBacktrack::search(Board start, HeuristicFunction h) {
+SearchResult AnnealingThenBacktrack::search(Board start, const std::unique_ptr<Heuristic> &h) {
     SearchResult globalSearchResult;
 
     do {

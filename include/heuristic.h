@@ -3,9 +3,38 @@
 #include <cstdint>
 
 #include "common.h"
+#include <string>
 
-double count_attacking_pairs(const Board &state);
+class Heuristic {
+public:
+    virtual ~Heuristic() = default;
 
-double line_occupancy_heuristic(const Board &state);
+    virtual double calculate(const Board &board) = 0;
+
+    [[nodiscard]] std::string &name() { return name_; }
+
+protected:
+    explicit Heuristic(const std::string_view name) : name_(name) {
+    }
+
+private:
+    std::string name_;
+};
+
+class CountAttackingPairs final : public Heuristic {
+public:
+    explicit CountAttackingPairs() : Heuristic("count attacking pairs") {
+    }
+
+    double calculate(const Board &board) override;
+};
+
+class LineOccupancyHeuristic final : public Heuristic {
+public:
+    explicit LineOccupancyHeuristic() : Heuristic("line occupancy heuristic") {
+    }
+
+    double calculate(const Board &board) override;
+};
 
 #endif

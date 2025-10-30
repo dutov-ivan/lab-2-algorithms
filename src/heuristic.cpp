@@ -3,7 +3,7 @@
 #include "common.h"
 #include "../include/masks.h"
 
-double count_attacking_pairs(const Board &board) {
+double CountAttackingPairs::calculate(const Board &board) {
     int total_attacks = 0;
 
     Board temp_board = board;
@@ -16,8 +16,8 @@ double count_attacking_pairs(const Board &board) {
     return total_attacks;
 }
 
-double line_occupancy_heuristic(const Board &b) {
-    uint64_t bb = b.get();
+double LineOccupancyHeuristic::calculate(const Board &board) {
+    uint64_t bb = board.get();
     int h = 0;
 
     auto add_conflicts = [&](uint64_t mask) {
