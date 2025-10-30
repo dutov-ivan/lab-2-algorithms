@@ -1,8 +1,6 @@
 #ifndef LOCAL_H
 #define LOCAL_H
-#include <cstdint>
 #include <memory>
-#include <vector>
 #include <random>
 #include "heuristic.h"
 
@@ -32,7 +30,8 @@ struct BacktrackNode {
 
     explicit BacktrackNode(Board board);
 
-    explicit BacktrackNode(Board board, std::uint8_t emptyCols) : board(board), emptyCols(emptyCols) {}
+    explicit BacktrackNode(const Board board, const std::uint8_t emptyCols) : board(board), emptyCols(emptyCols) {
+    }
 };
 
 class BacktrackSearch final : public Search {

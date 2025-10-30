@@ -3,12 +3,12 @@
 #include <unordered_set>
 
 
-SearchResult AStarSearch::search(Board start, const std::unique_ptr<Heuristic> &h) {
+SearchResult AStarSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
     SearchStats stats;
     std::unordered_set<uint64_t> visited;
     const auto initialState = AStarNode{start, 0, h};
-    auto cmp = [&h](const AStarNode &a, const AStarNode &b) {
-        return (a.f) > (b.f);
+    auto cmp = [](const AStarNode &a, const AStarNode &b) {
+        return a.f > b.f;
     };
     AStarPriorityQueue pq(cmp);
 
@@ -27,7 +27,7 @@ SearchResult AStarSearch::search(Board start, const std::unique_ptr<Heuristic> &
             return SearchResult{stats, current.bitboard, true};
         }
 
-        const int before = pq.size();
+        const size_t before = pq.size();
         add_next_states(current, pq, h);
         stats.nodesGenerated += pq.size() - before;
 
@@ -38,9 +38,10 @@ SearchResult AStarSearch::search(Board start, const std::unique_ptr<Heuristic> &
 }
 
 
-void AStarSearch::add_next_states(const AStarNode &initial, AStarPriorityQueue &pq, const std::unique_ptr<Heuristic> &h) {
+void AStarSearch::add_next_states(const AStarNode &initial, AStarPriorityQueue &pq,
+                                  const std::unique_ptr<Heuristic> &h) {
     for (int col = 0; col < 8; ++col) {
-            const uint8_t currentRow = initial.bitboard.queen_row(col);
+        const uint8_t currentRow = initial.bitboard.queen_row(col);
         for (int row = 0; row < 8; ++row) {
             if (row == currentRow) {
                 continue; // Skip if there's a queen already in this position

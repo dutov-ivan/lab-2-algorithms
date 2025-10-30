@@ -1,6 +1,3 @@
-//
-// Created by dutov on 10/23/2025.
-//
 // csv_export.cpp
 #include <fstream>
 #include <sstream>
@@ -28,7 +25,7 @@ static std::string board_to_multiline_string(const Board &board) {
 // newline, comma, or quotes (RFC4180-style, sufficient for common CSV readers)
 static std::string escape_csv_field(const std::string &field) {
     bool need_quotes = false;
-    for (char c: field) {
+    for (const char c: field) {
         if (c == '"' || c == ',' || c == '\n' || c == '\r') {
             need_quotes = true;
             break;
@@ -39,7 +36,7 @@ static std::string escape_csv_field(const std::string &field) {
     std::string escaped;
     escaped.reserve(field.size() + 2);
     escaped.push_back('"');
-    for (char c: field) {
+    for (const char c: field) {
         if (c == '"') {
             escaped.push_back('"'); // double the quote
             escaped.push_back('"');
@@ -73,8 +70,8 @@ bool save_reports_csv(const std::vector<SearchReport> &results, const std::strin
     return true;
 }
 
-bool save_average_stats_csv(const std::vector<std::pair<std::string, AverageStats>> &average_stats,
-                             const std::string &filename) {
+bool save_average_stats_csv(const std::vector<std::pair<std::string, AverageStats> > &average_stats,
+                            const std::string &filename) {
     std::ofstream out(filename, std::ios::binary);
     if (!out.is_open()) {
         std::cerr << "Failed to open CSV file for writing: " << filename << std::endl;

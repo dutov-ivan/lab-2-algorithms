@@ -25,11 +25,11 @@ int main() {
     heuristics.push_back(std::make_unique<CountAttackingPairs>());
     heuristics.push_back(std::make_unique<LineOccupancyHeuristic>());
 
-    std::vector<std::pair<std::string, AverageStats>> all_average_stats;
+    std::vector<std::pair<std::string, AverageStats> > all_average_stats;
 
     for (const auto &heuristic: heuristics) {
         for (const auto &searcher: searchers) {
-    std::cout << "=== " << searcher->name() << " EXPERIMENTS ===" << std::endl;
+            std::cout << "=== " << searcher->name() << " EXPERIMENTS ===" << std::endl;
 
             std::vector<SearchReport> search_reports = perform_experiments(searcher, gen, heuristic, 20);
             std::cout << "REPORT FOR ALGORITHM: " << searcher->name()
@@ -39,8 +39,8 @@ int main() {
             const AverageStats average_stats = calculate_average_algorithm_stats(search_reports);
             all_average_stats.emplace_back(searcher->name() + " + " + heuristic->name(), average_stats);
             print_report_average(average_stats);
-            const std::string filename = searcher->name() + "_" + heuristic->name() + "_experiments.csv";
-            if (!save_reports_csv(search_reports, filename)) {
+            if (const std::string filename = searcher->name() + "_" + heuristic->name() + "_experiments.csv"; !
+                save_reports_csv(search_reports, filename)) {
                 std::cerr << "CSV export failed\n";
             } else {
                 std::cout << "Wrote " << filename << std::endl;
@@ -66,7 +66,7 @@ std::vector<SearchReport> perform_experiments(const std::unique_ptr<Search> &sea
 
     for (size_t i = 0; i < experiment_count; i++) {
         const Board initial_board = generate_initial_bitboard(gen);
-        SearchResult result = searcher->search(initial_board, h);
+        const SearchResult result = searcher->search(initial_board, h);
         results.push_back({initial_board, result.solution, result.stats,});
     }
     return results;
@@ -80,11 +80,16 @@ AverageStats calculate_average_algorithm_stats(const std::vector<SearchReport> &
     }
 
     const std::size_t experiment_count = results.size();
-    AverageStats average_results{};
-    average_results.avg_iterations = static_cast<double>(total_stats.iterations) / static_cast<double>(experiment_count);
-    average_results.avg_nodesGenerated =  static_cast<double>(total_stats.nodesGenerated) / static_cast<double>(experiment_count);;
-    average_results.avg_nodesInMemory = static_cast<double>(total_stats.nodesInMemory) / static_cast<double>(experiment_count);;
-    average_results.avg_deadEnds = static_cast<double>(total_stats.deadEnds) / static_cast<double>(experiment_count);;
+    const AverageStats average_results
+    {
+        static_cast<double>(total_stats.iterations) / static_cast<double>(
+            experiment_count),
+        static_cast<double>(total_stats.nodesGenerated) / static_cast<double>(
+            experiment_count),
+        static_cast<double>(total_stats.nodesInMemory) / static_cast<double>(
+            experiment_count),
+        static_cast<double>(total_stats.deadEnds) / static_cast<double>(experiment_count)
+    };
     return average_results;
 }
 

@@ -1,6 +1,5 @@
 #ifndef HEURISTIC_H
 #define HEURISTIC_H
-#include <cstdint>
 
 #include "common.h"
 #include <string>

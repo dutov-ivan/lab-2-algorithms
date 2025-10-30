@@ -13,15 +13,15 @@ constexpr std::array<std::uint64_t, 64> generate_queen_attacks() {
 
         // 1. Horizontal (Rank) and Vertical (File) attacks
         for (int i = 0; i < 8; ++i) {
-            mask |= (1ULL << (r * 8 + i));
-            mask |= (1ULL << (i * 8 + f));
+            mask |= 1ULL << (r * 8 + i);
+            mask |= 1ULL << (i * 8 + f);
         }
 
         // 2. Diagonal and Anti-Diagonal attacks
-        for (int i = r + 1, j = f + 1; i < 8 && j < 8; ++i, ++j) mask |= (1ULL << (i * 8 + j));
-        for (int i = r - 1, j = f - 1; i >= 0 && j >= 0; --i, --j) mask |= (1ULL << (i * 8 + j));
-        for (int i = r + 1, j = f - 1; i < 8 && j >= 0; ++i, --j) mask |= (1ULL << (i * 8 + j));
-        for (int i = r - 1, j = f + 1; i >= 0 && j < 8; --i, ++j) mask |= (1ULL << (i * 8 + j));
+        for (int i = r + 1, j = f + 1; i < 8 && j < 8; ++i, ++j) mask |= 1ULL << (i * 8 + j);
+        for (int i = r - 1, j = f - 1; i >= 0 && j >= 0; --i, --j) mask |= 1ULL << (i * 8 + j);
+        for (int i = r + 1, j = f - 1; i < 8 && j >= 0; ++i, --j) mask |= 1ULL << (i * 8 + j);
+        for (int i = r - 1, j = f + 1; i >= 0 && j < 8; --i, ++j) mask |= 1ULL << (i * 8 + j);
 
         // A queen does not attack its own square, so we remove it from the mask.
         mask &= ~(1ULL << sq);
@@ -34,12 +34,12 @@ constexpr std::array<std::uint64_t, 64> generate_queen_attacks() {
 
 inline constexpr auto QUEEN_ATTACKS = generate_queen_attacks();
 
-constexpr uint64_t coord_to_bit(int r, int c) {
+constexpr uint64_t coord_to_bit(const int r, const int c) {
     return 1ULL << (r * 8 + c);
 }
 
 // Row mask: all c = 0..7, fixed r
-constexpr uint64_t row_mask(int r) {
+constexpr uint64_t row_mask(const int r) {
     uint64_t mask = 0;
     for (int c = 0; c < 8; ++c)
         mask |= coord_to_bit(r, c);
@@ -47,31 +47,29 @@ constexpr uint64_t row_mask(int r) {
 }
 
 // Column mask: all r = 0..7, fixed c
-constexpr uint64_t col_mask(int c) {
+constexpr uint64_t col_mask(const int c) {
     uint64_t mask = 0;
     for (int r = 0; r < 8; ++r)
         mask |= coord_to_bit(r, c);
     return mask;
 }
 
-// Main diagonal: r - c = k, where k in [-7..+7] we store from 0..14 by k+7
-constexpr uint64_t main_diag_mask(int idx) {
-    int k = idx - 7;
+// Main diagonal: r - c = k, where k in [-7...+7] we store from 0..14 by k+7
+constexpr uint64_t main_diag_mask(const int idx) {
+    const int k = idx - 7;
     uint64_t mask = 0;
     for (int r = 0; r < 8; ++r) {
-        int c = r - k;
-        if (c >= 0 && c < 8)
+        if (const int c = r - k; c >= 0 && c < 8)
             mask |= coord_to_bit(r, c);
     }
     return mask;
 }
 
 // Anti-diagonal: r + c = k, where k in [0..14]
-constexpr uint64_t anti_diag_mask(int k) {
+constexpr uint64_t anti_diag_mask(const int k) {
     uint64_t mask = 0;
     for (int r = 0; r < 8; ++r) {
-        int c = k - r;
-        if (c >= 0 && c < 8)
+        if (const int c = k - r; c >= 0 && c < 8)
             mask |= coord_to_bit(r, c);
     }
     return mask;

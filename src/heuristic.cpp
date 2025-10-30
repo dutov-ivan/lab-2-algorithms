@@ -17,18 +17,17 @@ unsigned int CountAttackingPairs::calculate(const Board &board) {
 }
 
 unsigned int LineOccupancyHeuristic::calculate(const Board &board) {
-    uint64_t bb = board.get();
+    const uint64_t bb = board.get();
     int h = 0;
 
-    auto add_conflicts = [&](uint64_t mask) {
-        int occ = std::popcount(bb & mask);
-        if (occ > 1) h += (occ - 1);
+    auto add_conflicts = [&](const uint64_t mask) {
+        if (const int occ = std::popcount(bb & mask); occ > 1) h += occ - 1;
     };
 
-    for (auto m: ROW_MASKS) add_conflicts(m);
-    for (auto m: COL_MASKS) add_conflicts(m);
-    for (auto m: MAIN_DIAG_MASKS) add_conflicts(m);
-    for (auto m: ANTI_DIAG_MASKS) add_conflicts(m);
+    for (const auto m: ROW_MASKS) add_conflicts(m);
+    for (const auto m: COL_MASKS) add_conflicts(m);
+    for (const auto m: MAIN_DIAG_MASKS) add_conflicts(m);
+    for (const auto m: ANTI_DIAG_MASKS) add_conflicts(m);
 
     return h;
 }

@@ -3,7 +3,7 @@
 #include <cstdint>
 
 struct Board {
-    explicit Board(std::uint64_t bb = 0) : bitboard(bb) {
+    explicit Board(const std::uint64_t bb = 0) : bitboard(bb) {
     }
 
     [[nodiscard]] std::uint64_t get() const;
@@ -20,7 +20,7 @@ struct Board {
 
     [[nodiscard]] bool is_empty() const;
 
-   [[nodiscard]] int queen_row(std::uint8_t col) const;
+    [[nodiscard]] int queen_row(std::uint8_t col) const;
 
     struct Iterator {
         std::uint64_t bb;
@@ -28,14 +28,14 @@ struct Board {
         bool operator!=(const Iterator &other) const { return bb != other.bb; }
 
         Iterator &operator++() {
-            bb &= (bb - 1);
+            bb &= bb - 1;
             return *this;
         } // pop lowest bit
         int operator*() const { return __builtin_ctzll(bb); } // index of LSB
     };
 
     [[nodiscard]] Iterator begin() const { return Iterator{bitboard}; }
-    [[nodiscard]] static Iterator end() { return Iterator{0}; }
+    [[nodiscard]] static Iterator end() { return Iterator{}; }
 
 private:
     std::uint64_t bitboard;

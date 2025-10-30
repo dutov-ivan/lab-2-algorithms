@@ -1,5 +1,4 @@
 #include "../include/local_backtrack.h"
-#include "local_backtrack.h"
 #include <stack>
 #include <iostream>
 
@@ -28,12 +27,11 @@ SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<He
 
         const Board randomState = next_state(current, stats);
 
-        const double deltaE = h->calculate(randomState) - h->calculate(current);
-        if (deltaE > 0) {
+        if (const double deltaE = h->calculate(randomState) - h->calculate(current); deltaE > 0) {
             current = randomState;
         } else {
-            const double acceptanceProb = exp(deltaE / T(t));
-            if ((gen_() / static_cast<double>(std::mt19937::max())) < acceptanceProb) {
+            if (const double acceptanceProb = exp(deltaE / T(t));
+                static_cast<double>(gen_()) / static_cast<double>(std::mt19937::max()) < acceptanceProb) {
                 current = randomState;
             }
         }
@@ -53,9 +51,9 @@ bool AnnealingSearch::is_valid_board(const Board &start) {
     std::uint8_t columnMask = 0;
     int queenCount = 0;
 
-    for (const auto &sq : start) {
-        int col = sq % 8;
-        uint8_t bit = (1u << col);
+    for (const auto &sq: start) {
+        const int col = sq % 8;
+        const uint8_t bit = 1u << col;
 
         // Duplicate column found
         if (columnMask & bit) {
@@ -157,14 +155,14 @@ SearchResult AnnealingThenBacktrack::search(Board start, const std::unique_ptr<H
     SearchResult globalSearchResult;
 
     do {
-        const SearchResult localSearchResult = annealing_->search(start, h);
-        depict_state(localSearchResult.solution, h);
-        globalSearchResult.stats += localSearchResult.stats;
-        if (localSearchResult.solved) {
+        const auto [localStats, localBoard, localSolved] = annealing_->search(start, h);
+        depict_state(localBoard, h);
+        globalSearchResult.stats += localStats;
+        if (localSolved) {
             break;
         }
 
-        const Board board_without_conflicts = remove_conflicts(localSearchResult.solution);
+        const Board board_without_conflicts = remove_conflicts(localBoard);
         depict_state(board_without_conflicts, h);
 
         const auto [stats, solution, solved] = backtracking_->search(board_without_conflicts, h);
@@ -191,9 +189,8 @@ Board AnnealingThenBacktrack::remove_conflicts(Board board) {
 
         for (const auto &sq: board) {
             Board attackedQueens = board.queens_attacked_from(sq);
-            int conflicts = attackedQueens.count_queens();
 
-            if (conflicts > maxConflicts) {
+            if (const int conflicts = attackedQueens.count_queens(); conflicts > maxConflicts) {
                 maxConflicts = conflicts;
                 maxConflictsPos = sq;
             }

@@ -1,9 +1,4 @@
-//
-// Created by dutov on 10/22/2025.
-//
 #include "../include/common.h"
-
-#include <stdexcept>
 
 #include "masks.h"
 
@@ -11,17 +6,17 @@ std::uint64_t Board::get() const {
     return bitboard;
 }
 
-Board *Board::clear_queen(std::uint8_t position) {
+Board *Board::clear_queen(const std::uint8_t position) {
     bitboard &= ~(1ULL << position);
     return this;
 }
 
-bool Board::has_queen_at(std::uint8_t position) const {
-    return (bitboard & (1ULL << position)) != 0;
+bool Board::has_queen_at(const std::uint8_t position) const {
+    return (bitboard & 1ULL << position) != 0;
 }
 
-Board *Board::set_queen(std::uint8_t position) {
-    bitboard |= (1ULL << position);
+Board *Board::set_queen(const std::uint8_t position) {
+    bitboard |= 1ULL << position;
     return this;
 }
 
@@ -37,7 +32,7 @@ bool Board::is_empty() const {
     return bitboard == 0;
 }
 
-int Board::queen_row(std::uint8_t col) const {
+int Board::queen_row(const std::uint8_t col) const {
     for (const auto &sq: *this) {
         if (sq % 8 == col) {
             return sq / 8;

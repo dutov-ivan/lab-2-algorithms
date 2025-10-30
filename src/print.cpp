@@ -37,15 +37,15 @@ void print_reports(std::vector<SearchReport> &results) {
 
 
         const auto &[iterations, nodesGenerated, nodesInMemory, deadEnds] = results[i].stats;
-        std::cout << "Iterations: " << (iterations) << std::endl;
-        std::cout << "Generated nodes: " << (nodesGenerated) << std::endl;
-        std::cout << "Nodes in memory (max): " << (nodesInMemory) << std::endl;
-        std::cout << "Dead ends encountered: " << (deadEnds) << std::endl;
+        std::cout << "Iterations: " << iterations << std::endl;
+        std::cout << "Generated nodes: " << nodesGenerated << std::endl;
+        std::cout << "Nodes in memory (max): " << nodesInMemory << std::endl;
+        std::cout << "Dead ends encountered: " << deadEnds << std::endl;
         std::cout << "----------------------------------------" << std::endl;
     }
 }
 
-void print_report_average(const AverageStats& results) {
+void print_report_average(const AverageStats &results) {
     std::cout << "========================================" << std::endl;
     std::cout << "AVERAGE RESULTS" << std::endl;
     std::cout << "Average Iterations: " << results.avg_iterations << std::endl;

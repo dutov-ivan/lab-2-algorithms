@@ -1,14 +1,10 @@
 #include "../include/generate.h"
 
 #include <random>
-#include <vector>
 #include <algorithm>
-#include <numeric>
-
-#include "common.h"
 
 Board generate_initial_bitboard(std::mt19937 &gen) {
-    std::uniform_int_distribution<int> row_dist(0, 7);
+    std::uniform_int_distribution row_dist(0, 7);
     Board board;
 
     for (int col = 0; col < 8; ++col) {

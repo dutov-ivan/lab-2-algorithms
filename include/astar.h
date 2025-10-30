@@ -15,13 +15,15 @@ struct AStarNode {
     unsigned int g; // Cost from start to current node
     Board bitboard; // Unique representation of board with queens
 
-    AStarNode(const Board board, unsigned int g, const std::unique_ptr<Heuristic>& h) {
+    AStarNode(const Board board, const unsigned int g, const std::unique_ptr<Heuristic> &h) {
         this->bitboard = board;
         this->g = g;
         this->f = g + h->calculate(board);
     }
 };
-typedef std::priority_queue<AStarNode, std::vector<AStarNode>, std::function<bool(const AStarNode &, const AStarNode &)>> AStarPriorityQueue;
+
+typedef std::priority_queue<AStarNode, std::vector<AStarNode>, std::function<bool
+    (const AStarNode &, const AStarNode &)> > AStarPriorityQueue;
 
 
 class AStarSearch final : public Search {
