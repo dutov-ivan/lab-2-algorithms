@@ -6,40 +6,9 @@
 #include "generate.h"
 #include "print.h"
 
-SearchNode::SearchNode(const Board board) {
-    uint8_t empty_cols = 0xFF; // all 8 bits = 1, assume all columns empty
-
-    for (const auto &q: board) {
-        const std::uint8_t col = q % 8;
-        empty_cols &= ~(1u << col);
-    }
-
-    this->emptyCols = empty_cols;
-    this->board = board;
-}
-
-SearchNode::SearchNode(const SearchNode &prev, std::uint8_t col, std::uint8_t row) {
-    board = prev.board;
-    board.set_queen(queen_position(col, row));
-    emptyCols = prev.emptyCols & ~(1u << col);
-}
-
-
 AnnealingSearch::AnnealingSearch(std::mt19937 &gen) : Search("simulated annealing search"), gen_(gen),
                                                       col_distribution_(0, 7),
                                                       col_distribution_except_one_(0, 7 - 1) {
-}
-
-bool AnnealingSearch::is_valid_board(const Board &start) {
-    // Only accept boards with one queen per column
-    std::uint8_t emptyCols = 0;
-    for (const auto &sq: start) {
-        emptyCols |= (1u << (sq % 8));
-    }
-    if (~emptyCols != 0) {
-        return true; // Invalid start board
-    }
-    return false;
 }
 
 SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
@@ -75,8 +44,21 @@ SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<He
     return SearchResult{stats, current, false}; // No solution found
 }
 
+
 double AnnealingSearch::T(const int t) {
     return 1000.0 - 10.0 * t;
+}
+
+bool AnnealingSearch::is_valid_board(const Board &start) {
+    // Only accept boards with one queen per column
+    std::uint8_t emptyCols = 0;
+    for (const auto &sq: start) {
+        emptyCols |= (1u << (sq % 8));
+    }
+    if (~emptyCols != 0) {
+        return true; // Invalid start board
+    }
+    return false;
 }
 
 Board AnnealingSearch::next_state(const Board &current, SearchStats &stats) {
@@ -102,21 +84,36 @@ Board AnnealingSearch::next_state(const Board &current, SearchStats &stats) {
     return randomState;
 }
 
-SearchResult BacktrackSearch::search(Board start, const std::unique_ptr<Heuristic> &h) {
-    SearchNode initial(start);
+BacktrackNode::BacktrackNode(const Board board) {
+    uint8_t empty_cols = 0xFF; // all 8 bits = 1, assume all columns empty
+
+    for (const auto &q: board) {
+        const std::uint8_t col = q % 8;
+        empty_cols &= ~(1u << col);
+    }
+
+    this->emptyCols = empty_cols;
+    this->board = board;
+}
+
+BacktrackNode::BacktrackNode(const BacktrackNode &prev, std::uint8_t col, std::uint8_t row) {
+    board = prev.board;
+    board.set_queen(queen_position(col, row));
+    emptyCols = prev.emptyCols & ~(1u << col);
+}
+
+SearchResult BacktrackSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
+    BacktrackNode initial(start);
     SearchStats stats;
-    std::stack<SearchNode> st;
+    std::stack<BacktrackNode> st;
     st.push(initial);
 
     while (!st.empty()) {
-        SearchNode current = st.top();
+        BacktrackNode current = st.top();
         st.pop();
 
-        if (current.emptyCols == 0) {
-            if (current.board.count_queens() == 8) {
-                return SearchResult(stats, current.board, true);
-            }
-            continue; // Not a valid solution
+        if (current.emptyCols == 0 && current.board.count_queens() == 8) {
+            return SearchResult(stats, current.board, true);
         }
 
         const std::uint8_t col = __builtin_ctzll(current.emptyCols);

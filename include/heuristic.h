@@ -9,7 +9,7 @@ class Heuristic {
 public:
     virtual ~Heuristic() = default;
 
-    virtual double calculate(const Board &board) = 0;
+    virtual unsigned int calculate(const Board &board) = 0;
 
     [[nodiscard]] std::string &name() { return name_; }
 
@@ -26,7 +26,7 @@ public:
     explicit CountAttackingPairs() : Heuristic("count attacking pairs") {
     }
 
-    double calculate(const Board &board) override;
+    unsigned int calculate(const Board &board) override;
 };
 
 class LineOccupancyHeuristic final : public Heuristic {
@@ -34,7 +34,7 @@ public:
     explicit LineOccupancyHeuristic() : Heuristic("line occupancy heuristic") {
     }
 
-    double calculate(const Board &board) override;
+    unsigned int calculate(const Board &board) override;
 };
 
 #endif

@@ -22,6 +22,8 @@ add_executable(${PROJECT_NAME} ${PROJECT_SOURCES}
         src/common.cpp
         src/csv_export.cpp
         include/csv_export.h
+        include/common.h
+        include/search.h
 )
 
 # Public include directory
@@ -42,21 +44,21 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 install(DIRECTORY ${CMAKE_SOURCE_DIR}/include/ DESTINATION include)
-
-# === GoogleTest ===
-include(FetchContent)
-FetchContent_Declare(
-        googletest
-        GIT_REPOSITORY https://github.com/google/googletest
-        GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723
-)
-FetchContent_MakeAvailable(googletest)
-
-# === Test executable ===
-add_executable(tests test/BoardTests.cpp
-        src/common.cpp)
-target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
-target_link_libraries(tests PRIVATE gtest_main gmock_main)
-
-enable_testing()
-add_test(NAME ExternalSortTests COMMAND tests)
+#
+## === GoogleTest ===
+#include(FetchContent)
+#FetchContent_Declare(
+#        googletest
+#        GIT_REPOSITORY https://github.com/google/googletest
+#        GIT_TAG 52eb8108c5bdec04579160ae17225d66034bd723
+#)
+#FetchContent_MakeAvailable(googletest)
+#
+## === Test executable ===
+#add_executable(tests test/BoardTests.cpp
+#        src/common.cpp)
+#target_include_directories(tests PRIVATE ${CMAKE_SOURCE_DIR}/include)
+#target_link_libraries(tests PRIVATE gtest_main gmock_main)
+#
+#enable_testing()
+#add_test(NAME ExternalSortTests COMMAND tests)

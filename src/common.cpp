@@ -3,6 +3,8 @@
 //
 #include "../include/common.h"
 
+#include <stdexcept>
+
 #include "masks.h"
 
 std::uint64_t Board::get() const {
@@ -33,6 +35,15 @@ std::uint8_t Board::count_queens() const {
 
 bool Board::is_empty() const {
     return bitboard == 0;
+}
+
+int Board::queen_row(std::uint8_t col) const {
+    for (const auto &sq: *this) {
+        if (sq % 8 == col) {
+            return sq / 8;
+        }
+    }
+    return -1;
 }
 
 std::uint8_t queen_position(const std::uint8_t col, const std::uint8_t row) {

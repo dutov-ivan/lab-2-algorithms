@@ -26,13 +26,13 @@ private:
     std::uniform_int_distribution<std::uint8_t> col_distribution_except_one_;
 };
 
-struct SearchNode {
+struct BacktrackNode {
     Board board;
     std::uint8_t emptyCols;
 
-    explicit SearchNode(Board board);
+    explicit BacktrackNode(Board board);
 
-    explicit SearchNode(const SearchNode &prev, std::uint8_t col, std::uint8_t row);
+    explicit BacktrackNode(const BacktrackNode &prev, std::uint8_t col, std::uint8_t row);
 };
 
 class BacktrackSearch final : public Search {

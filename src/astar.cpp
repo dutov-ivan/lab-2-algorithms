@@ -1,34 +1,35 @@
 #include "../include/astar.h"
 
-#include <queue>
+#include <unordered_set>
 
 
 SearchResult AStarSearch::search(Board start, const std::unique_ptr<Heuristic> &h) {
     SearchStats stats;
-    auto initialState = AstarNode{0, start};
-    auto cmp = [&h](const AstarNode &a, const AstarNode &b) {
-        return (a.g + h->calculate(a.bitboard)) > (b.g + h->calculate(b.bitboard));
+    std::unordered_set<uint64_t> visited;
+    const auto initialState = AStarNode{start, 0, h};
+    auto cmp = [&h](const AStarNode &a, const AStarNode &b) {
+        return (a.f) > (b.f);
     };
-    std::priority_queue<AstarNode, std::vector<AstarNode>, decltype(cmp)> pq(cmp);
+    AStarPriorityQueue pq(cmp);
 
     pq.push(initialState);
     while (!pq.empty()) {
         if (pq.size() > stats.nodesInMemory) {
             stats.nodesInMemory = pq.size();
         }
-        AstarNode current = pq.top();
+        AStarNode current = pq.top();
         pq.pop();
+
+        if (visited.contains(current.bitboard.get())) continue;
+        visited.insert(current.bitboard.get());
 
         if (h->calculate(current.bitboard) == 0) {
             return SearchResult{stats, current.bitboard, true};
         }
 
-        const std::uint8_t queenCol = current.g % 8; // Determine which queen to move based on g value
-        std::vector<AstarNode> nextStates = get_next_states(current, queenCol);
-        stats.nodesGenerated += nextStates.size();
-        for (AstarNode &nextState: nextStates) {
-            pq.push(nextState);
-        }
+        const int before = pq.size();
+        add_next_states(current, pq, h);
+        stats.nodesGenerated += pq.size() - before;
 
         stats.iterations++;
     }
@@ -37,28 +38,22 @@ SearchResult AStarSearch::search(Board start, const std::unique_ptr<Heuristic> &
 }
 
 
-std::vector<AstarNode> AStarSearch::get_next_states(const AstarNode &initial, const std::uint8_t queenCol) {
-    std::vector<AstarNode> newBitboards;
+void AStarSearch::add_next_states(const AStarNode &initial, AStarPriorityQueue &pq, const std::unique_ptr<Heuristic> &h) {
+    for (int col = 0; col < 8; ++col) {
+            const uint8_t currentRow = initial.bitboard.queen_row(col);
+        for (int row = 0; row < 8; ++row) {
+            if (row == currentRow) {
+                continue; // Skip if there's a queen already in this position
+            }
 
-    for (int row = 0; row < 8; ++row) {
-        const uint8_t new_position = queen_position(queenCol, row);
-        if (initial.bitboard.has_queen_at(new_position)) {
-            continue; // Skip if there's a queen already in this position
+            Board newBitboard = initial.bitboard;
+
+            newBitboard.clear_queen(queen_position(col, currentRow));
+            newBitboard.set_queen(queen_position(col, row));
+
+            pq.emplace(newBitboard, initial.g + 1, h);
         }
-
-        Board newBitboard = initial.bitboard;
-
-        // Clear the current queen position in the specified column
-        for (int r = 0; r < 8; ++r) {
-            newBitboard.clear_queen(queen_position(queenCol, r));
-        }
-
-        // Set the new queen position in the specified column
-        newBitboard.set_queen(new_position);
-
-        newBitboards.emplace_back(AstarNode{initial.g + 1, newBitboard});
     }
-    return newBitboards;
 }
 
 
