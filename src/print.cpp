@@ -20,7 +20,7 @@ void print_bitboard(const Board &board) {
     }
 }
 
-void depict_state(const Board &board, const std::unique_ptr<Heuristic> &h) {
+void depict_state(const Board &board, const std::shared_ptr<Heuristic> &h) {
     print_bitboard(board);
     const double h_value = h->calculate(board);
     std::cout << "Heuristic value: " << h_value << std::endl;

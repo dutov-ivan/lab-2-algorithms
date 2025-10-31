@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "common.h"
 #include "heuristic.h"
@@ -36,7 +37,7 @@ public:
     explicit Search(const std::string_view name) : name_(name) {
     }
 
-    virtual SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) = 0;
+    virtual SearchResult search(Board start) = 0;
 
     virtual ~Search() = default;
 
@@ -46,6 +47,18 @@ public:
 
 private:
     std::string name_;
+};
+
+class HeuristicSearch : public Search {
+public:
+    explicit HeuristicSearch(const std::string_view name,
+                             std::shared_ptr<Heuristic> h) : Search(name), h_(std::move(h)) {
+    }
+
+    [[nodiscard]] std::shared_ptr<Heuristic> h() const { return h_; }
+
+private:
+    std::shared_ptr<Heuristic> h_;
 };
 
 #endif // SEARCH_H

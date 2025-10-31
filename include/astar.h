@@ -13,10 +13,10 @@
 struct AStarNode {
     unsigned int f; // Estimated total cost (g + h)
     unsigned int g; // Cost from start to current node
-    Board bitboard; // Unique representation of board with queens
+    Board board; // Unique representation of board with queens
 
-    AStarNode(const Board board, const unsigned int g, const std::unique_ptr<Heuristic> &h) {
-        this->bitboard = board;
+    AStarNode(const Board board, const unsigned int g, const std::shared_ptr<Heuristic> &h) {
+        this->board = board;
         this->g = g;
         this->f = g + h->calculate(board);
     }
@@ -26,15 +26,15 @@ typedef std::priority_queue<AStarNode, std::vector<AStarNode>, std::function<boo
     (const AStarNode &, const AStarNode &)> > AStarPriorityQueue;
 
 
-class AStarSearch final : public Search {
+class AStarSearch final : public HeuristicSearch {
 public:
-    explicit AStarSearch() : Search("AStar Search") {
+    explicit AStarSearch(const std::shared_ptr<Heuristic> &h) : HeuristicSearch("AStar Search", h) {
     }
 
-    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
+    SearchResult search(Board start) override;
 
 private:
-    static void add_next_states(const AStarNode &initial, AStarPriorityQueue &pq, const std::unique_ptr<Heuristic> &h);
+    static void add_next_states(const AStarNode &initial, AStarPriorityQueue &pq, const std::shared_ptr<Heuristic> &h);
 };
 
 #endif // ASTAR_H

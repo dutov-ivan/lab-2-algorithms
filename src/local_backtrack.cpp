@@ -5,12 +5,15 @@
 #include "generate.h"
 #include "print.h"
 
-AnnealingSearch::AnnealingSearch(std::mt19937 &gen) : Search("simulated annealing search"), gen_(gen),
-                                                      col_distribution_(0, 7),
-                                                      col_distribution_except_one_(0, 7 - 1) {
+AnnealingSearch::AnnealingSearch(std::mt19937 &gen,
+                                 const std::shared_ptr<Heuristic> &h) : HeuristicSearch("simulated annealing search",
+                                                                            h), gen_(gen),
+
+                                                                        col_distribution_(0, 7),
+                                                                        col_distribution_except_one_(0, 7 - 1) {
 }
 
-SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
+SearchResult AnnealingSearch::search(const Board start) {
     if (!is_valid_board(start))
         return SearchResult{SearchStats{}, start, false};
 
@@ -20,14 +23,14 @@ SearchResult AnnealingSearch::search(const Board start, const std::unique_ptr<He
     stats.nodesInMemory = 2;
 
     while (T(t) != 0) {
-        if (h->calculate(current) == 0) {
+        if (h()->calculate(current) == 0) {
             return SearchResult{stats, current, current.count_queens() == 8}; // Found a solution
         }
 
 
         const Board randomState = next_state(current, stats);
 
-        if (const double deltaE = h->calculate(randomState) - h->calculate(current); deltaE > 0) {
+        if (const double deltaE = h()->calculate(randomState) - h()->calculate(current); deltaE > 0) {
             current = randomState;
         } else {
             if (const double acceptanceProb = exp(deltaE / T(t));
@@ -104,7 +107,7 @@ BacktrackNode::BacktrackNode(const Board board) {
     this->board = board;
 }
 
-SearchResult BacktrackSearch::search(const Board start, const std::unique_ptr<Heuristic> &h) {
+SearchResult BacktrackSearch::search(const Board start) {
     SearchStats stats;
     std::stack<BacktrackNode> st;
     st.emplace(start);
@@ -143,29 +146,29 @@ SearchResult BacktrackSearch::search(const Board start, const std::unique_ptr<He
 }
 
 
-AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen) : Search(
-                                                                        "Annealing then Backtracking Search with retries"),
-
-                                                                    gen_(gen) {
-    annealing_ = std::make_unique<AnnealingSearch>(gen);
+AnnealingThenBacktrack::AnnealingThenBacktrack(std::mt19937 &gen,
+                                               const std::shared_ptr<Heuristic> &h) : HeuristicSearch(
+        "Annealing then Backtracking Search with retries", h),
+    gen_(gen) {
+    annealing_ = std::make_unique<AnnealingSearch>(gen_, h);
     backtracking_ = std::make_unique<BacktrackSearch>();
 }
 
-SearchResult AnnealingThenBacktrack::search(Board start, const std::unique_ptr<Heuristic> &h) {
+SearchResult AnnealingThenBacktrack::search(Board start) {
     SearchResult globalSearchResult;
 
     do {
-        const auto [localStats, localBoard, localSolved] = annealing_->search(start, h);
-        depict_state(localBoard, h);
+        const auto [localStats, localBoard, localSolved] = annealing_->search(start);
+        depict_state(localBoard, h());
         globalSearchResult.stats += localStats;
         if (localSolved) {
             break;
         }
 
         const Board board_without_conflicts = remove_conflicts(localBoard);
-        depict_state(board_without_conflicts, h);
+        depict_state(board_without_conflicts, h());
 
-        const auto [stats, solution, solved] = backtracking_->search(board_without_conflicts, h);
+        const auto [stats, solution, solved] = backtracking_->search(board_without_conflicts);
         globalSearchResult.stats += stats;
 
         if (!solved) {

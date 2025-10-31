@@ -6,7 +6,7 @@
 
 void print_bitboard(const Board &board);
 
-void depict_state(const Board &board, const std::unique_ptr<Heuristic> &h);
+void depict_state(const Board &board, const std::shared_ptr<Heuristic> &h);
 
 void print_reports(std::vector<SearchReport> &results);
 

@@ -6,11 +6,11 @@
 
 #include "search.h"
 
-class AnnealingSearch final : public Search {
+class AnnealingSearch final : public HeuristicSearch {
 public:
-    explicit AnnealingSearch(std::mt19937 &gen);
+    explicit AnnealingSearch(std::mt19937 &gen, const std::shared_ptr<Heuristic> &h);
 
-    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
+    SearchResult search(Board start) override;
 
 private:
     static double T(int t);
@@ -39,14 +39,14 @@ public:
     explicit BacktrackSearch() : Search("Backtracking Search") {
     }
 
-    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
+    SearchResult search(Board start) override;
 };
 
-class AnnealingThenBacktrack final : public Search {
+class AnnealingThenBacktrack final : public HeuristicSearch {
 public:
-    explicit AnnealingThenBacktrack(std::mt19937 &gen);
+    explicit AnnealingThenBacktrack(std::mt19937 &gen, const std::shared_ptr<Heuristic> &h);
 
-    SearchResult search(Board start, const std::unique_ptr<Heuristic> &h) override;
+    SearchResult search(Board start) override;
 
 private:
     static Board remove_conflicts(Board board);
