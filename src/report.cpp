@@ -6,17 +6,14 @@
 
 struct AverageStats;
 
-static std::string board_to_multiline_string(const Board &board) {
+static std::string board_to_singleline_string(const Board &board) {
     std::ostringstream oss;
-    for (int row = 0; row < 8; ++row) {
-        for (int col = 0; col < 8; ++col) {
+    for (int col = 0; col < 8; ++col) {
+        for (int row = 0; row < 8; ++row) {
             if (board.has_queen_at(queen_position(col, row))) {
-                oss << " Q ";
-            } else {
-                oss << " . ";
+                oss << row;
             }
         }
-        if (row < 7) oss << '\n'; // keep last line without extra newline at end of field
     }
     return oss.str();
 }
@@ -58,7 +55,7 @@ bool save_reports_csv(const std::vector<SearchReport> &results, const std::strin
     out << "Стартова позиція,Ітерації,Згенеровано вузлів,Вузлів у пам'яті,Глухі кути\n";
 
     for (const auto &r: results) {
-        const std::string start_field = board_to_multiline_string(r.startingPosition);
+        const std::string start_field = board_to_singleline_string(r.startingPosition);
         out << escape_csv_field(start_field) << ','
                 << r.stats.iterations << ','
                 << r.stats.nodesGenerated << ','
